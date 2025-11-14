@@ -1,0 +1,187 @@
+@model WebsiteGiay.Models.ProductPageViewModel
+@{
+    ViewData["Title"] = "Sản Phẩm";
+}
+
+<section class="product-page py-5">
+    <div class="container">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+            <h1 class="fw-bold text-primary mb-0">Khám Phá Sản Phẩm</h1>
+            <div class="search-bar flex-grow-1">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Nhập tên sản phẩm bạn muốn tìm..." />
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm filter-card mb-5">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-funnel text-primary"></i> Lọc Sản Phẩm</h5>
+                    <button class="btn btn-outline-secondary reset-filter-btn" id="resetFilters">
+                        <i class="bi bi-arrow-counterclockwise"></i> Đặt Lại
+                    </button>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-muted">Danh Mục</label>
+                        <select class="form-select filter-select" id="filterDanhMuc">
+                            <option value="">Tất cả</option>
+                            @foreach (var dm in Model.DanhMucs)
+                            {
+                                <option value="@dm.MaDanhMuc">@dm.TenDanhMuc</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-muted">Thương Hiệu</label>
+                        <select class="form-select filter-select" id="filterThuongHieu">
+                            <option value="">Tất cả</option>
+                            @foreach (var th in Model.ThuongHieus)
+                            {
+                                <option value="@th.MaThuongHieu">@th.TenThuongHieu</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-muted">Kích Cỡ</label>
+                        <select class="form-select filter-select" id="filterKichCo">
+                            <option value="">Tất cả</option>
+                            @foreach (var kc in Model.KichCos)
+                            {
+                                <option value="@kc.KichCo1">@kc.KichCo1</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-muted">Màu Sắc</label>
+                        <select class="form-select filter-select" id="filterMauSac">
+                            <option value="">Tất cả</option>
+                            @foreach (var ms in Model.MauSacs)
+                            {
+                                <option value="@ms.TenMau">@ms.TenMau</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4" id="productList">
+            @foreach (var sp in Model.Products)
+            {
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 product-item"
+                     data-name="@sp.TenSanPham"
+                     data-brand="@sp.TenThuongHieu"
+                     data-brand-id="@sp.MaThuongHieu"
+                     data-category="@sp.TenDanhMuc"
+                     data-category-id="@sp.MaDanhMuc"
+                     data-sizes="@string.Join(',', sp.KichCoValues)"
+                     data-colors="@string.Join(',', sp.MauSacValues)">
+                    @await Html.PartialAsync("_ProductCard", sp)
+                </div>
+            }
+        </div>
+
+        <div class="text-center mt-4 d-none" id="emptyState">
+            <img src="/images/empty_state.svg" alt="Không tìm thấy sản phẩm" class="empty-state-img mb-3" />
+            <h5 class="fw-bold">Không tìm thấy sản phẩm phù hợp</h5>
+            <p class="text-muted">Bạn hãy thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm khác nhé.</p>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        (function () {
+            const searchInput = document.getElementById('searchInput');
+            const filterDanhMuc = document.getElementById('filterDanhMuc');
+            const filterThuongHieu = document.getElementById('filterThuongHieu');
+            const filterKichCo = document.getElementById('filterKichCo');
+            const filterMauSac = document.getElementById('filterMauSac');
+            const resetButton = document.getElementById('resetFilters');
+            const productItems = Array.from(document.querySelectorAll('.product-item'));
+            const emptyState = document.getElementById('emptyState');
+
+            const initialBrand = '@(ViewBag.SelectedBrandId ?? string.Empty)';
+
+            const state = {
+                search: '',
+                danhMuc: '',
+                thuongHieu: initialBrand ? initialBrand.toLowerCase() : '',
+                kichCo: '',
+                mauSac: ''
+            };
+
+            function applyFilters() {
+                let visibleCount = 0;
+                productItems.forEach(item => {
+                    const name = item.dataset.name?.toLowerCase() ?? '';
+                    const brand = item.dataset.brand?.toLowerCase() ?? '';
+                    const category = item.dataset.category?.toLowerCase() ?? '';
+                    const brandId = item.dataset.brandId ?? '';
+                    const categoryId = item.dataset.categoryId ?? '';
+                    const sizes = (item.dataset.sizes ?? '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
+                    const colors = (item.dataset.colors ?? '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
+
+                    const matchSearch = state.search === '' || name.includes(state.search);
+                    const matchCategory = state.danhMuc === '' || categoryId === state.danhMuc || category === state.danhMuc;
+                    const matchBrand = state.thuongHieu === '' || brandId === state.thuongHieu || brand === state.thuongHieu;
+                    const matchSize = state.kichCo === '' || sizes.includes(state.kichCo);
+                    const matchColor = state.mauSac === '' || colors.includes(state.mauSac);
+
+                    const isVisible = matchSearch && matchCategory && matchBrand && matchSize && matchColor;
+                    item.classList.toggle('d-none', !isVisible);
+                    if (isVisible) visibleCount++;
+                });
+
+                emptyState.classList.toggle('d-none', visibleCount !== 0);
+            }
+
+            searchInput?.addEventListener('input', (e) => {
+                state.search = e.target.value.trim().toLowerCase();
+                applyFilters();
+            });
+
+            filterDanhMuc?.addEventListener('change', (e) => {
+                state.danhMuc = (e.target.value ?? '').trim().toLowerCase();
+                applyFilters();
+            });
+
+            filterThuongHieu?.addEventListener('change', (e) => {
+                state.thuongHieu = (e.target.value ?? '').trim().toLowerCase();
+                applyFilters();
+            });
+
+            filterKichCo?.addEventListener('change', (e) => {
+                state.kichCo = e.target.value.trim().toLowerCase();
+                applyFilters();
+            });
+
+            filterMauSac?.addEventListener('change', (e) => {
+                state.mauSac = e.target.value.trim().toLowerCase();
+                applyFilters();
+            });
+
+            resetButton?.addEventListener('click', () => {
+                searchInput.value = '';
+                filterDanhMuc.value = '';
+                filterThuongHieu.value = '';
+                filterKichCo.value = '';
+                filterMauSac.value = '';
+                state.search = state.danhMuc = state.thuongHieu = state.kichCo = state.mauSac = '';
+                applyFilters();
+            });
+
+            if (initialBrand && filterThuongHieu) {
+                filterThuongHieu.value = initialBrand;
+            }
+
+            // Khởi tạo
+            applyFilters();
+        })();
+    </script>
+}
+
+

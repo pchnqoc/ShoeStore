@@ -1,0 +1,38 @@
+@model WebsiteGiay.Models.SanPhamInfo
+
+<div class="card product-card h-100 shadow-sm">
+    <div class="product-card-image-wrapper">
+        @if (!string.IsNullOrEmpty(Model.HinhAnh))
+        {
+            <img src="@Model.HinhAnh" alt="@Model.TenSanPham" class="product-card-image" loading="lazy" />
+        }
+        else
+        {
+            <div class="product-card-placeholder">
+                <i class="bi bi-image"></i>
+            </div>
+        }
+        <div class="product-card-overlay">
+            <a class="btn btn-primary btn-sm me-2" href="/SanPham/ChiTiet/@Model.MaSanPham">
+                <i class="bi bi-eye"></i> Xem Chi Tiết
+            </a>
+            <button class="btn btn-success btn-sm"
+                    @(Model.ConHang ? "" : "disabled")
+                    data-product-id="@Model.MaSanPham"
+                    data-bienthe="@Model.DefaultBienTheId"
+                    data-size="@Model.DefaultSize"
+                    data-color="@Model.DefaultColor"
+                    onclick="@(Model.ConHang ? "quickAddToCart(this)" : "return false;")">
+                <i class="bi bi-cart-plus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <span class="badge text-bg-light text-uppercase fw-semibold small">@Model.TenThuongHieu</span>
+        <h5 class="card-title mt-2">@Model.TenSanPham</h5>
+        <p class="text-muted small mb-2">@Model.TenDanhMuc</p>
+        <p class="product-card-price mb-0">@Model.Gia.ToString("N0") đ</p>
+    </div>
+</div>
+
+

@@ -1,0 +1,61 @@
+@model WebsiteGiay.Models.NavbarViewModel
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-primary" asp-controller="Home" asp-action="Index">
+            <i class="bi bi-shoe-print"></i> SHOE STORE
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Home" asp-action="Index">Trang Chủ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Product" asp-action="Index">Sản Phẩm</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link position-relative cart-link" href="#" data-requires-auth="true" data-target-url="@Url.Action("Index", "Cart")">
+                        <i class="bi bi-cart3"></i> Giỏ Hàng
+                        @if (Model.SoLuongGioHang > 0)
+                        {
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count-badge">
+                                @Model.SoLuongGioHang
+                            </span>
+                        }
+                    </a>
+                </li>
+                @if (Model.NguoiDung != null)
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i> @Model.NguoiDung.HoTen
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="/Account/Profile">Tài Khoản</a></li>
+                            <li><a class="dropdown-item" href="/DonHang">Đơn Hàng</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="dangXuat()">Đăng Xuất</a></li>
+                        </ul>
+                    </li>
+                }
+                else
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Account/Login">Đăng Nhập</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Account/Register">Đăng Ký</a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>
+

@@ -1,0 +1,44 @@
+@model WebsiteGiay.Models.Auth.LoginViewModel
+@{
+    ViewData["Title"] = "Đăng Nhập";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-4 text-center text-primary">Đăng Nhập</h3>
+                    <form asp-action="Login" method="post" novalidate>
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label asp-for="UserNameOrEmail" class="form-label fw-semibold"></label>
+                            <input asp-for="UserNameOrEmail" class="form-control" placeholder="Tên đăng nhập hoặc Email" />
+                            <span asp-validation-for="UserNameOrEmail" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label fw-semibold"></label>
+                            <input asp-for="Password" class="form-control" placeholder="Mật khẩu" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input asp-for="RememberMe" class="form-check-input" />
+                            <label asp-for="RememberMe" class="form-check-label"></label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Đăng Nhập</button>
+                        <div class="text-center mt-3">
+                            <span>Chưa có tài khoản?</span> <a asp-controller="Account" asp-action="Register">Đăng ký ngay</a>
+                        </div>
+                        <div asp-validation-summary="All" class="text-danger mt-3"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+}
+
+

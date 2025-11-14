@@ -1,0 +1,167 @@
+@model WebsiteGiay.Models.ProductDetailViewModel
+@{
+    ViewData["Title"] = Model.TenSanPham;
+    var brandName = ViewBag.BrandName as string ?? string.Empty;
+    var categoryName = ViewBag.CategoryName as string ?? string.Empty;
+    bool hasStock = Model.ConHang;
+}
+
+<section class="product-detail-page py-5">
+    <div class="container">
+        <div class="row g-5 align-items-start">
+            <div class="col-lg-6">
+                <div class="detail-image-wrapper shadow-sm">
+                    @if (!string.IsNullOrEmpty(Model.HinhAnh))
+                    {
+                        <img src="@Model.HinhAnh" alt="@Model.TenSanPham" class="img-fluid rounded-4">
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center justify-content-center bg-light rounded-4" style="height: 420px;">
+                            <i class="bi bi-image text-muted fs-1"></i>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="detail-info card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <span class="badge bg-light text-primary mb-2">@brandName</span>
+                        <h1 class="fw-bold text-dark mb-3">@Model.TenSanPham</h1>
+                        <p class="text-muted mb-4">@Model.MoTa</p>
+                        <p class="detail-price text-primary fw-bold fs-3 mb-4">@Model.Gia.ToString("N0") đ</p>
+
+                        @if (TempData["Error"] is string errorMessage)
+                        {
+                            <div class="alert alert-danger" role="alert">@errorMessage</div>
+                        }
+                        @if (TempData["Success"] is string successMessage)
+                        {
+                            <div class="alert alert-success" role="alert">@successMessage</div>
+                        }
+
+                        <form asp-action="AddToCart" method="post" class="detail-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="productId" value="@Model.MaSanPham" />
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Màu sắc</label>
+                                    <select class="form-select form-select-lg" name="colorId" required @(hasStock ? "" : "disabled")>
+                                        <option value="">-- Chọn màu --</option>
+                                        @foreach (var option in Model.DanhSachMau)
+                                        {
+                                            <option value="@option.Value" disabled="@option.Disabled">@option.Text @(option.Disabled ? "(Hết hàng)" : string.Empty)</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Kích cỡ</label>
+                                    <select class="form-select form-select-lg" name="sizeId" required @(hasStock ? "" : "disabled")>
+                                        <option value="">-- Chọn kích cỡ --</option>
+                                        @foreach (var option in Model.DanhSachKichCo)
+                                        {
+                                            <option value="@option.Value" disabled="@option.Disabled">@option.Text @(option.Disabled ? "(Hết hàng)" : string.Empty)</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Số lượng</label>
+                                    <input type="number" name="quantity" class="form-control form-control-lg" value="1" min="1" @(hasStock ? "" : "disabled") />
+                                </div>
+                                <div class="col-md-8 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100" @(hasStock ? "" : "disabled")>
+                                        <i class="bi bi-cart-plus me-2"></i> Thêm vào giỏ hàng
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.SanPhamLienQuan.Any())
+        {
+            <div class="related-products mt-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold text-primary mb-0">Sản phẩm liên quan</h3>
+                    <a class="text-decoration-none" asp-controller="Product" asp-action="Index">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+                </div>
+                <div class="row g-4">
+                    @foreach (var sp in Model.SanPhamLienQuan)
+                    {
+                        <div class="col-lg-3 col-md-4 col-sm-6">
+                            <div class="card shadow-sm border-0 h-100 product-suggestion-card">
+                                <div class="suggestion-image-wrapper">
+                                    @if (!string.IsNullOrEmpty(sp.HinhAnh))
+                                    {
+                                        <img src="@sp.HinhAnh" class="card-img-top" alt="@sp.TenSanPham">
+                                    }
+                                    else
+                                    {
+                                        <div class="placeholder bg-light d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-image text-muted fs-2"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="card-title text-truncate">@sp.TenSanPham</h6>
+                                    <p class="text-primary fw-semibold mb-3">@sp.Gia.ToString("N0") đ</p>
+                                    <div class="d-grid gap-2">
+                                        <a class="btn btn-outline-primary btn-sm" asp-action="Details" asp-route-id="@sp.MaSanPham">
+                                            Xem chi tiết
+                                        </a>
+                                        <button class="btn btn-primary btn-sm"
+                                                @(sp.ConHang ? "" : "disabled")
+                                                data-product-id="@sp.MaSanPham"
+                                                data-bienthe="@sp.DefaultBienTheId"
+                                                data-size="@sp.DefaultSize"
+                                                data-color="@sp.DefaultColor"
+                                                onclick="@(sp.ConHang ? "quickAddToCart(this)" : "return false;")">
+                                            @(sp.ConHang ? "Thêm vào giỏ" : "Hết hàng")
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('.detail-form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Check authentication first
+                    fetch('/Account/CheckAuth')
+                        .then(response => response.json())
+                        .then(authData => {
+                            if (!authData.isAuthenticated) {
+                                showNotification('Bạn phải đăng nhập để thêm sản phẩm vào giỏ hàng', 'warning');
+                                return;
+                            }
+                            
+                            // If authenticated, submit the form
+                            form.submit();
+                        })
+                        .catch(error => {
+                            console.error('Auth check error:', error);
+                            showNotification('Bạn phải đăng nhập để thêm sản phẩm vào giỏ hàng', 'warning');
+                        });
+                });
+            }
+        });
+    </script>
+}
+

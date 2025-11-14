@@ -1,0 +1,167 @@
+@model WebsiteGiay.Models.CheckoutViewModel
+@{
+    ViewData["Title"] = "Xác Nhận Đơn Hàng";
+}
+
+<section class="checkout-page py-5">
+    <div class="container">
+        <div class="mb-4 text-center text-md-start">
+            <h1 class="fw-bold text-primary mb-2">Xác Nhận Đơn Hàng</h1>
+            <p class="text-muted mb-0">Vui lòng kiểm tra và điền đầy đủ thông tin để hoàn tất đơn hàng.</p>
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <form asp-action="PlaceOrder" method="post" class="checkout-form">
+            @Html.AntiForgeryToken()
+            
+            <div class="row g-4">
+                <!-- Left Column: Order Items -->
+                <div class="col-lg-8">
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-body">
+                            <h4 class="fw-bold text-dark mb-4"><i class="bi bi-cart-check me-2"></i>Thông Tin Đơn Hàng</h4>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Sản Phẩm</th>
+                                            <th>Size</th>
+                                            <th>Màu</th>
+                                            <th class="text-center">Số Lượng</th>
+                                            <th class="text-end">Đơn Giá</th>
+                                            <th class="text-end">Thành Tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.Items)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <img src="@item.ImageUrl" alt="@item.TenSanPham" class="checkout-item-img" />
+                                                        <div>
+                                                            <div class="fw-semibold">@item.TenSanPham</div>
+                                                            <small class="text-muted">@item.ThuongHieu</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>@item.KichCo</td>
+                                                <td>@item.MauSac</td>
+                                                <td class="text-center">@item.SoLuong</td>
+                                                <td class="text-end">@item.DonGia.ToString("N0") đ</td>
+                                                <td class="text-end fw-semibold">@item.ThanhTien.ToString("N0") đ</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Information -->
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body">
+                            <h4 class="fw-bold text-dark mb-4"><i class="bi bi-person-circle me-2"></i>Thông Tin Giao Hàng</h4>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label asp-for="HoTen" class="form-label fw-semibold"></label>
+                                    <input asp-for="HoTen" class="form-control" />
+                                    <span asp-validation-for="HoTen" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="DienThoai" class="form-label fw-semibold"></label>
+                                    <input asp-for="DienThoai" class="form-control" />
+                                    <span asp-validation-for="DienThoai" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Phương thức thanh toán</label>
+                                    <div class="form-control bg-light">
+                                        <i class="bi bi-cash-coin me-2"></i>Thanh toán khi nhận hàng (COD)
+                                    </div>
+                                    <input type="hidden" asp-for="PhuongThucThanhToan" value="COD" />
+                                </div>
+                                <div class="col-md-12">
+                                    <label asp-for="DiaChiGiaoHang" class="form-label fw-semibold"></label>
+                                    <textarea asp-for="DiaChiGiaoHang" class="form-control" rows="3"></textarea>
+                                    <span asp-validation-for="DiaChiGiaoHang" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-12">
+                                    <label asp-for="GhiChu" class="form-label fw-semibold"></label>
+                                    <textarea asp-for="GhiChu" class="form-control" rows="2" placeholder="Ghi chú thêm cho đơn hàng (tùy chọn)"></textarea>
+                                    <span asp-validation-for="GhiChu" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Order Summary -->
+                <div class="col-lg-4">
+                    <div class="order-summary card shadow-sm border-0">
+                        <div class="card-body">
+                            <h4 class="fw-bold text-dark mb-4">Tóm Tắt Đơn Hàng</h4>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">Tạm tính</span>
+                                <span id="cartSubtotal" class="fw-semibold">@Model.TongTien.ToString("N0") đ</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">Phí vận chuyển</span>
+                                <span class="text-muted">Sẽ được tính khi thanh toán</span>
+                            </div>
+                            <hr />
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <span class="fw-bold fs-5 text-dark">Tổng tiền</span>
+                                <span id="cartTotal" class="fw-bold fs-4 text-primary">@Model.TongCong.ToString("N0") đ</span>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>Xác Nhận Đặt Hàng
+                            </button>
+                            <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">
+                                <i class="bi bi-arrow-left me-2"></i>Quay Lại Giỏ Hàng
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <style>
+        .checkout-page {
+            background-color: #f8f9fa;
+        }
+
+        .checkout-item-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .checkout-form .card {
+            border-radius: 12px;
+        }
+
+        .checkout-page {
+            background-color: #f8f9fa;
+        }
+
+        .order-summary {
+            position: sticky;
+            top: 20px;
+            z-index: 10;
+        }
+    </style>
+}
+

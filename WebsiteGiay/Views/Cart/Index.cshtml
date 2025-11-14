@@ -1,0 +1,351 @@
+@model WebsiteGiay.Models.CartViewModel
+@{
+    ViewData["Title"] = "Giỏ Hàng";
+}
+
+<section class="cart-page py-5">
+    <div class="container">
+        <div class="mb-4 text-center text-md-start">
+            <h1 class="fw-bold text-primary mb-2">Giỏ Hàng Của Bạn</h1>
+            <p class="text-muted mb-0">Kiểm tra lại đơn hàng trước khi thanh toán. Bạn có thể thay đổi size, màu sắc và số lượng ngay tại đây.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="cart-items-wrapper">
+                    @if (!Model.Items.Any())
+                    {
+                        <div class="text-center py-5">
+                            <img src="/images/empty_state.svg" alt="Giỏ hàng trống" class="empty-state-img mb-3" />
+                            <h5 class="fw-bold text-primary">Giỏ hàng của bạn đang trống</h5>
+                            <p class="text-muted mb-3">Hãy khám phá các sản phẩm mới nhất và thêm vào giỏ nhé.</p>
+                            <a class="btn btn-primary" asp-controller="Product" asp-action="Index">Tiếp tục mua sắm</a>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model.Items)
+                        {
+                            <div class="cart-item-card d-flex flex-column flex-md-row align-items-md-center gap-3"
+                                 data-item-id="@item.Id"
+                                 data-giohang="@item.MaGioHang"
+                                 data-bienthe="@item.MaBienTheSp"
+                                 data-unit-price="@item.DonGia">
+                            <div class="cart-item-thumb">
+                                @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                {
+                                    <img src="@item.ImageUrl" alt="@item.TenSanPham" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <div class="thumb-placeholder">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                }
+                            </div>
+                            <div class="cart-item-content flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="fw-semibold mb-1">@item.TenSanPham</h5>
+                                        <span class="text-muted small text-uppercase">@item.ThuongHieu</span>
+                                    </div>
+                                    <button class="btn btn-link text-danger cart-remove-btn" data-remove="@item.Id">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </div>
+
+                                <div class="row g-3 mt-3">
+                                    <div class="col-sm-4">
+                                        <label class="form-label small text-muted">Kích cỡ</label>
+                                        <select class="form-select cart-select" data-type="size">
+                                            @foreach (var size in item.Sizes)
+                                            {
+                                                <option value="@size" selected="@(size == item.SelectedSize)">@size</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <label class="form-label small text-muted">Màu sắc</label>
+                                        <select class="form-select cart-select" data-type="color">
+                                            @foreach (var color in item.Colors)
+                                            {
+                                                <option value="@color" selected="@(color == item.SelectedColor)">@color</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <label class="form-label small text-muted">Số lượng</label>
+                                        <div class="quantity-input">
+                                            <button class="btn btn-outline-secondary quantity-btn" data-action="minus" type="button">
+                                                <i class="bi bi-dash"></i>
+                                            </button>
+                                            <input type="number" class="form-control text-center cart-quantity" value="@item.SoLuong" min="1">
+                                            <button class="btn btn-outline-secondary quantity-btn" data-action="plus" type="button">
+                                                <i class="bi bi-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cart-item-price text-md-end">
+                                <span class="text-muted small">Thành tiền</span>
+                                <p class="h5 fw-bold mb-0 item-total" data-value="@item.ThanhTien">@item.ThanhTien.ToString("N0") đ</p>
+                            </div>
+                        </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="order-summary card shadow-sm">
+                    <div class="card-body">
+                        <h4 class="fw-bold text-dark mb-4">Tóm Tắt Đơn Hàng</h4>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted">Tạm tính</span>
+                            <span id="cartSubtotal" class="fw-semibold">@Model.Subtotal.ToString("N0") đ</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted">Phí vận chuyển</span>
+                            <span class="text-muted">Sẽ được tính khi thanh toán</span>
+                        </div>
+                        <hr />
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <span class="fw-bold fs-5 text-dark">Tổng tiền</span>
+                            <span id="cartTotal" class="fw-bold fs-4 text-primary">@Model.Total.ToString("N0") đ</span>
+                        </div>
+                        @if (Model.Items.Any())
+                        {
+                            <a asp-controller="Checkout" asp-action="Index" class="btn btn-primary w-100 btn-lg">Tiến Hành Thanh Toán</a>
+                        }
+                        else
+                        {
+                            <a href="#" class="btn btn-primary w-100 btn-lg disabled" tabindex="-1" aria-disabled="true" onclick="showNotification('Giỏ hàng của bạn     đang trống.', 'info'); return false;">Tiến Hành Thanh Toán</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        (function () {
+            const cartItemsWrapper = document.querySelector('.cart-items-wrapper');
+            const subtotalEl = document.getElementById('cartSubtotal');
+            const totalSummaryEl = document.getElementById('cartTotal');
+
+            function formatCurrency(value) {
+                return new Intl.NumberFormat('vi-VN').format(value) + ' đ';
+            }
+
+            function recalcTotals() {
+                const itemTotals = Array.from(document.querySelectorAll('.item-total'));
+                let subtotal = 0;
+                itemTotals.forEach(el => {
+                    const value = parseFloat(el.dataset.value || '0');
+                    subtotal += value;
+                });
+
+                subtotalEl.textContent = formatCurrency(subtotal);
+                totalSummaryEl.textContent = formatCurrency(subtotal);
+            }
+
+            function updateItemTotal(card, quantity) {
+                const unitPrice = parseFloat(card.dataset.unitPrice);
+                const payload = {
+                    MaBienTheSp: parseInt(card.dataset.bienthe),
+                    Quantity: quantity
+                };
+
+                sendUpdateRequest(payload, card);
+            }
+
+            function sendUpdateRequest(payload, card) {
+                if (!payload.MaBienTheSp || isNaN(payload.MaBienTheSp)) {
+                    return;
+                }
+
+                fetch('/Cart/UpdateItem', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(async r => {
+                    const data = await r.json();
+                    if (!r.ok) {
+                        if (r.status === 401 && data.redirectUrl) {
+                            window.location.href = data.redirectUrl;
+                            return Promise.reject();
+                        }
+                        return Promise.reject(data);
+                    }
+                    return data;
+                })
+                .then(data => {
+                    if (card && data) {
+                        if (data.newBienTheSp) {
+                            card.dataset.bienthe = data.newBienTheSp;
+                        }
+                        if (data.unitPrice !== undefined) {
+                            card.dataset.unitPrice = data.unitPrice;
+                        }
+                        if (data.selectedSize) {
+                            const sizeSelect = card.querySelector('select[data-type="size"]');
+                            if (sizeSelect) sizeSelect.value = data.selectedSize;
+                        }
+                        if (data.selectedColor) {
+                            const colorSelect = card.querySelector('select[data-type="color"]');
+                            if (colorSelect) colorSelect.value = data.selectedColor;
+                        }
+                        if (data.quantity !== undefined) {
+                            const qtyInput = card.querySelector('.cart-quantity');
+                            if (qtyInput) qtyInput.value = data.quantity;
+                        }
+
+                        const totalEl = card.querySelector('.item-total');
+                        if (totalEl && data.itemTotal !== undefined) {
+                            totalEl.textContent = formatCurrency(data.itemTotal);
+                            totalEl.dataset.value = data.itemTotal;
+                        }
+
+                        if (data.subtotal !== undefined) {
+                            subtotalEl.textContent = formatCurrency(data.subtotal);
+                        }
+                        if (data.total !== undefined) {
+                            totalSummaryEl.textContent = formatCurrency(data.total);
+                        }
+                        recalcTotals();
+                    }
+                })
+                .catch(error => {
+                    console.error('Update cart error:', error);
+                    showNotification(error.message || 'Không thể cập nhật giỏ hàng', 'danger');
+                });
+            }
+
+            function sendRemoveRequest(card) {
+                const payload = {
+                    MaBienTheSp: parseInt(card.dataset.bienthe)
+                };
+
+                if (!payload.MaBienTheSp || isNaN(payload.MaBienTheSp)) {
+                    return;
+                }
+
+                fetch('/Cart/Remove', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(async r => {
+                    const data = await r.json();
+                    if (!r.ok) {
+                        if (r.status === 401 && data.redirectUrl) {
+                            window.location.href = data.redirectUrl;
+                            return Promise.reject();
+                        }
+                        return Promise.reject(data);
+                    }
+                    return data;
+                })
+                .then(data => {
+                    card.remove();
+                    recalcTotals();
+                    if (data.totalQuantity !== undefined) {
+                        updateCartBadge(data.totalQuantity);
+                    }
+                    if (cartItemsWrapper && cartItemsWrapper.querySelectorAll('.cart-item-card').length === 0) {
+                        cartItemsWrapper.innerHTML = `
+                            <div class="text-center py-5">
+                                <img src="/images/empty_state.svg" alt="Giỏ hàng trống" class="empty-state-img mb-3" />
+                                <h5 class="fw-bold text-primary">Giỏ hàng của bạn đang trống</h5>
+                                <p class="text-muted mb-3">Hãy khám phá các sản phẩm mới nhất và thêm vào giỏ nhé.</p>
+                                <a class="btn btn-primary" href="/Product">Tiếp tục mua sắm</a>
+                            </div>
+                        `;
+                    }
+                    showNotification(data.message || 'Đã xóa sản phẩm khỏi giỏ hàng', 'success');
+                })
+                .catch(error => {
+                    console.error('Remove cart error:', error);
+                    showNotification(error?.message || 'Không thể xóa sản phẩm', 'danger');
+                });
+            }
+
+            cartItemsWrapper?.addEventListener('click', function (e) {
+                const btn = e.target.closest('.quantity-btn');
+                if (btn) {
+                    const card = btn.closest('.cart-item-card');
+                    const input = card.querySelector('.cart-quantity');
+                    let value = parseInt(input.value) || 1;
+                    if (btn.dataset.action === 'minus') {
+                        value = Math.max(1, value - 1);
+                    } else if (btn.dataset.action === 'plus') {
+                        value += 1;
+                    }
+                    input.value = value;
+                    updateItemTotal(card, value);
+                }
+
+                const removeBtn = e.target.closest('[data-remove]');
+                if (removeBtn) {
+                    const card = removeBtn.closest('.cart-item-card');
+                    sendRemoveRequest(card);
+                }
+            });
+
+            cartItemsWrapper?.addEventListener('change', function (e) {
+                if (e.target.classList && e.target.classList.contains('cart-quantity')) {
+                    const card = e.target.closest('.cart-item-card');
+                    let value = parseInt(e.target.value) || 1;
+                    if (value < 1) {
+                        value = 1;
+                        e.target.value = value;
+                    }
+                    updateItemTotal(card, value);
+                }
+
+                if (e.target.classList && e.target.classList.contains('cart-select')) {
+                    const card = e.target.closest('.cart-item-card');
+                    const payload = {
+                        MaBienTheSp: parseInt(card.dataset.bienthe),
+                        Quantity: parseInt(card.querySelector('.cart-quantity').value) || 1
+                    };
+                    if (e.target.dataset.type === 'size') {
+                        payload.Size = e.target.value;
+                        const colorSelect = card.querySelector('select[data-type="color"]');
+                        if (colorSelect) {
+                            payload.Color = colorSelect.value;
+                        }
+                    } else if (e.target.dataset.type === 'color') {
+                        payload.Color = e.target.value;
+                        const sizeSelect = card.querySelector('select[data-type="size"]');
+                        if (sizeSelect) {
+                            payload.Size = sizeSelect.value;
+                        }
+                    }
+                    sendUpdateRequest(payload, card);
+                }
+            });
+
+            recalcTotals();
+
+            checkoutBtn?.addEventListener('click', function () {
+                if (checkoutBtn.disabled) {
+                    showNotification('Giỏ hàng của bạn đang trống.', 'info');
+                    return;
+                }
+
+                showNotification('Chức năng thanh toán đang được phát triển. Vui lòng thử lại sau.', 'info');
+            });
+        })();
+    </script>
+}
+
+

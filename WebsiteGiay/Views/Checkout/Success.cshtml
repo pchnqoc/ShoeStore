@@ -1,0 +1,184 @@
+@model WebsiteGiay.Models.DonHang
+@{
+    ViewData["Title"] = "Đặt Hàng Thành Công";
+}
+
+<section class="checkout-success-page py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-lg border-0 text-center">
+                    <div class="card-body p-5">
+                        <div class="success-icon mb-4">
+                            <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+                        </div>
+                        <h1 class="fw-bold text-success mb-3">Đặt Hàng Thành Công!</h1>
+                        <p class="lead text-muted mb-4">
+                            Cảm ơn bạn đã đặt hàng. Đơn hàng của bạn đã được tiếp nhận và đang được xử lý.
+                        </p>
+
+                        <div class="order-info-card bg-light rounded-4 p-4 mb-4 text-start">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-receipt me-2"></i>Thông Tin Đơn Hàng</h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <strong>Mã đơn hàng:</strong>
+                                    <div class="text-primary fw-bold fs-5">#@Model.MaDonHang</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Ngày đặt hàng:</strong>
+                                    <div>@Model.NgayDatHang?.ToString("dd/MM/yyyy HH:mm")</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Trạng thái:</strong>
+                                    <div>
+                                        <span class="badge bg-warning text-dark">@Model.TrangThai</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Tổng tiền:</strong>
+                                    <div class="text-primary fw-bold fs-5">@Model.TongTien.ToString("N0") đ</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Phương thức thanh toán:</strong>
+                                    <div>
+                                        @{
+                                            var paymentMethod = "Thanh toán khi nhận hàng (COD)";
+                                            if (!string.IsNullOrEmpty(Model.GhiChu) && Model.GhiChu.Contains("Phương thức thanh toán:"))
+                                            {
+                                                var lines = Model.GhiChu.Split('\n');
+                                                foreach (var line in lines)
+                                                {
+                                                    if (line.Contains("Phương thức thanh toán:"))
+                                                    {
+                                                        paymentMethod = line.Replace("Phương thức thanh toán:", "").Trim();
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        <span class="badge bg-info text-dark">@paymentMethod</span>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <strong>Địa chỉ giao hàng:</strong>
+                                    <div>@Model.DiaChiGiaoHang</div>
+                                </div>
+                                @{
+                                    var userNote = Model.GhiChu;
+                                    if (!string.IsNullOrEmpty(userNote) && userNote.Contains("Phương thức thanh toán:"))
+                                    {
+                                        var lines = userNote.Split('\n');
+                                        var noteLines = new System.Collections.Generic.List<string>();
+                                        foreach (var line in lines)
+                                        {
+                                            if (!line.Contains("Phương thức thanh toán:"))
+                                            {
+                                                noteLines.Add(line);
+                                            }
+                                        }
+                                        userNote = string.Join("\n", noteLines).Trim();
+                                    }
+                                }
+                                @if (!string.IsNullOrEmpty(userNote))
+                                {
+                                    <div class="col-12">
+                                        <strong>Ghi chú:</strong>
+                                        <div>@userNote</div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="order-items mb-4">
+                            <h5 class="fw-bold mb-3 text-start"><i class="bi bi-box-seam me-2"></i>Chi Tiết Đơn Hàng</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Sản Phẩm</th>
+                                            <th>Size</th>
+                                            <th>Màu</th>
+                                            <th class="text-center">Số Lượng</th>
+                                            <th class="text-end">Thành Tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.ChiTietDonHangs)
+                                        {
+                                            var product = item.MaBienTheSpNavigation.MaSanPhamNavigation;
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <img src="@WebsiteGiay.Utilities.ImageHelper.ResolveImagePath(product.HinhAnh)" 
+                                                             alt="@product.TenSanPham" 
+                                                             class="order-item-img" />
+                                                        <div>
+                                                            <div class="fw-semibold">@product.TenSanPham</div>
+                                                            <small class="text-muted">@product.MaThuongHieuNavigation.TenThuongHieu</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>@item.MaBienTheSpNavigation.MaKichCoNavigation?.KichCo1</td>
+                                                <td>@item.MaBienTheSpNavigation.MaMauNavigation?.TenMau</td>
+                                                <td class="text-center">@item.SoLuong</td>
+                                                <td class="text-end fw-semibold">@item.ThanhTien.ToString("N0") đ</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3 justify-content-center flex-wrap">
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg">
+                                <i class="bi bi-house me-2"></i>Về Trang Chủ
+                            </a>
+                            <a asp-controller="Product" asp-action="Index" class="btn btn-outline-primary btn-lg">
+                                <i class="bi bi-bag me-2"></i>Tiếp Tục Mua Sắm
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .checkout-success-page {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+
+    .checkout-success-page .card {
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .order-info-card {
+        background: #f8f9fa !important;
+    }
+
+    .order-item-img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 6px;
+    }
+
+    .success-icon {
+        animation: scaleIn 0.5s ease-out;
+    }
+
+    @@keyframes scaleIn {
+        from {
+            transform: scale(0);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+</style>
+

@@ -1,0 +1,137 @@
+﻿@model WebsiteGiay.Models.HomeViewModel
+@{
+    ViewData["Title"] = "Trang Chủ";
+}
+
+<!-- Banner Slider -->
+<section class="hero-slider mb-5">
+    <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            @for (int i = 0; i < Model.SanPhamMoiNhat.Count; i++)
+            {
+                <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="@i" 
+                        class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : "false")" 
+                        aria-label="Slide @(i + 1)"></button>
+            }
+        </div>
+        <div class="carousel-inner">
+            @for (int i = 0; i < Model.SanPhamMoiNhat.Count; i++)
+            {
+                var sp = Model.SanPhamMoiNhat[i];
+                <div class="carousel-item @(i == 0 ? "active" : "")">
+                    <div class="hero-slide d-flex align-items-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 500px;">
+                        <div class="container">
+                            <div class="row align-items-center">
+                                <div class="col-md-6 text-white">
+                                    <h1 class="display-4 fw-bold mb-3">@sp.TenSanPham</h1>
+                                    <p class="lead mb-4">@sp.TenThuongHieu - @sp.TenDanhMuc</p>
+                                    <div class="price-section mb-4">
+                                        @if (sp.GiaSauGiam.HasValue)
+                                        {
+                                            <span class="text-decoration-line-through text-white-50 me-2 fs-5">@sp.Gia.ToString("N0") đ</span>
+                                            <span class="fs-2 fw-bold text-warning">@sp.GiaSauGiam.Value.ToString("N0") đ</span>
+                                            @if (sp.PhanTramGiam.HasValue)
+                                            {
+                                                <span class="badge bg-danger ms-2 fs-6">-@sp.PhanTramGiam.Value%</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="fs-2 fw-bold">@sp.Gia.ToString("N0") đ</span>
+                                        }
+                                    </div>
+                                    <a href="#" class="btn btn-light btn-lg px-5" onclick="xemChiTiet(@sp.MaSanPham)">
+                                        Xem Chi Tiết
+                                    </a>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    @if (!string.IsNullOrEmpty(sp.HinhAnh))
+                                    {
+                                        <img src="@sp.HinhAnh" alt="@sp.TenSanPham" class="img-fluid hero-product-image">
+                                    }
+                                    else
+                                    {
+                                        <div class="hero-product-placeholder bg-white rounded p-5">
+                                            <i class="bi bi-image fs-1 text-muted"></i>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</section>
+
+<!-- Brand Highlights -->
+@if (Model.BrandHighlights.Any())
+{
+    <section class="brand-highlights py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <span class="badge brand-badge mb-3">Thương Hiệu</span>
+                <h2 class="fw-bold text-primary">Các Thương Hiệu Nổi Bật</h2>
+                <p class="text-muted">Khám phá những thương hiệu mang đậm cá tính, phong cách và chất lượng, được khách hàng ưa chuộng nhất tại Shoe Store.</p>
+            </div>
+
+            <div class="brand-highlight-list d-flex flex-column gap-4">
+                @for (int i = 0; i < Model.BrandHighlights.Count; i++)
+                {
+                    var brand = Model.BrandHighlights[i];
+                    var isReverse = i % 2 == 1;
+                    <div class="brand-highlight-card shadow-sm">
+                        <div class="row align-items-center g-4 @(isReverse ? "flex-md-row-reverse" : string.Empty)">
+                            <div class="col-md-6">
+                                <div class="brand-content px-md-4 py-3">
+                                    <h3 class="fw-bold text-dark text-uppercase">@brand.TenThuongHieu</h3>
+                                    <p class="text-muted mb-4">@(!string.IsNullOrWhiteSpace(brand.MoTa) ? brand.MoTa : "Những đôi giày đến từ thương hiệu này luôn là biểu tượng của sự chỉn chu và phong cách hiện đại, giúp bạn tự tin trong mọi khoảnh khắc.")</p>
+                                    <a class="btn btn-primary brand-button" asp-controller="Product" asp-action="Index" asp-route-brand="@brand.MaThuongHieu">
+                                        Tới Cửa Hàng
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="brand-image-wrapper">
+                                    @if (!string.IsNullOrEmpty(brand.ImageUrl))
+                                    {
+                                        <img src="@brand.ImageUrl" alt="@brand.TenThuongHieu" class="brand-image" loading="lazy" />
+                                    }
+                                    else
+                                    {
+                                        <div class="brand-image-placeholder">
+                                            <i class="bi bi-shop-window"></i>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- Featured Products -->
+<section class="featured-products mb-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold"><i class="bi bi-star-fill text-warning"></i> Sản Phẩm Nổi Bật</h2>
+            <a href="#" class="text-decoration-none">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="row g-4" id="productGrid">
+            @await Html.PartialAsync("_ProductGrid", Model.SanPhamNoiBat)
+        </div>
+    </div>
+</section>
+

@@ -1,0 +1,81 @@
+@model WebsiteGiay.Models.Auth.RegisterViewModel
+@{
+    ViewData["Title"] = "Đăng Ký";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-4 text-center text-primary">Tạo tài khoản</h3>
+                    <form asp-action="Register" method="post" novalidate>
+                        @Html.AntiForgeryToken()
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="TenDangNhap" class="form-label fw-semibold"></label>
+                                <input asp-for="TenDangNhap" class="form-control" placeholder="Tên đăng nhập" />
+                                <span asp-validation-for="TenDangNhap" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label fw-semibold"></label>
+                                <input asp-for="Email" class="form-control" placeholder="email@domain.com" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="MatKhau" class="form-label fw-semibold"></label>
+                                <input asp-for="MatKhau" class="form-control" placeholder="Mật khẩu" />
+                                <span asp-validation-for="MatKhau" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="XacNhanMatKhau" class="form-label fw-semibold"></label>
+                                <input asp-for="XacNhanMatKhau" class="form-control" placeholder="Nhập lại mật khẩu" />
+                                <span asp-validation-for="XacNhanMatKhau" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="HoTen" class="form-label fw-semibold"></label>
+                                <input asp-for="HoTen" class="form-control" placeholder="Họ tên" />
+                                <span asp-validation-for="HoTen" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="NgaySinh" class="form-label fw-semibold"></label>
+                                <input asp-for="NgaySinh" class="form-control" />
+                                <span asp-validation-for="NgaySinh" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-3">
+                                <label asp-for="GioiTinh" class="form-label fw-semibold"></label>
+                                <select asp-for="GioiTinh" class="form-select">
+                                    <option value="">Chọn giới tính</option>
+                                    <option>Nam</option>
+                                    <option>Nữ</option>
+                                    <option>Khác</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="DienThoai" class="form-label fw-semibold"></label>
+                                <input asp-for="DienThoai" class="form-control" placeholder="Số điện thoại" />
+                                <span asp-validation-for="DienThoai" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="DiaChi" class="form-label fw-semibold"></label>
+                                <input asp-for="DiaChi" class="form-control" placeholder="Địa chỉ" />
+                                <span asp-validation-for="DiaChi" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mt-4">Đăng Ký</button>
+                        <div class="text-center mt-3">
+                            <span>Đã có tài khoản?</span> <a asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                        </div>
+                        <div asp-validation-summary="All" class="text-danger mt-3"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+}
+
+
