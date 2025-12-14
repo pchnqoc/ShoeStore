@@ -1,0 +1,518 @@
+@model WebsiteGiay.Models.DonHang
+@{
+    ViewData["Title"] = "Chi Tiết Đơn Hàng";
+    var reviewedProductIds = ViewBag.ReviewedProductIds as List<int> ?? new List<int>();
+    var reviews = ViewBag.Reviews as Dictionary<int, WebsiteGiay.Models.DanhGia> ?? new Dictionary<int, WebsiteGiay.Models.DanhGia>();
+}
+
+<style>
+    .order-detail-page {
+        background-color: #f5f5f5;
+        min-height: 100vh;
+        padding: 24px 0;
+    }
+    
+    .order-detail-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 16px;
+    }
+    
+    .order-detail-header {
+        background: white;
+        padding: 24px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    
+    .order-detail-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        margin-bottom: 16px;
+    }
+    
+    .order-detail-card-header {
+        background: #fafafa;
+        padding: 16px 24px;
+        border-bottom: 1px solid #f5f5f5;
+    }
+    
+    .order-detail-card-body {
+        padding: 24px;
+    }
+    
+    .order-item-card {
+        background: white;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    
+    .btn-view {
+        padding: 8px 20px;
+        border: 1px solid #ee4d2d;
+        color: #ee4d2d;
+        background: white;
+        border-radius: 4px;
+        font-weight: 500;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-view:hover {
+        background: #ee4d2d;
+        color: white;
+    }
+</style>
+
+<div class="order-detail-page">
+    <div class="order-detail-container">
+        <div class="order-detail-header">
+            <a asp-action="Index" class="text-decoration-none text-primary mb-3 d-inline-block">
+                <i class="bi bi-arrow-left me-2"></i>Quay lại danh sách đơn hàng
+            </a>
+            <h3 class="mb-0">
+                <i class="bi bi-receipt-cutoff me-2"></i>Chi Tiết Đơn Hàng #@Model.MaDonHang
+            </h3>
+            <p class="text-muted mb-0 mt-2">Thông tin chi tiết về đơn hàng của bạn</p>
+        </div>
+
+        @if (TempData["Success"] is string successMessage)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>@successMessage
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] is string errorMessage)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-circle me-2"></i>@errorMessage
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="row g-4">
+            <!-- Order Information -->
+            <div class="col-lg-4">
+                <div class="order-detail-card">
+                    <div class="order-detail-card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-info-circle me-2 text-primary"></i>Thông Tin Đơn Hàng
+                        </h5>
+                    </div>
+                    <div class="order-detail-card-body">
+                        <h5 class="fw-bold text-dark mb-4">
+                            <i class="bi bi-info-circle me-2 text-primary"></i>Thông Tin Đơn Hàng
+                        </h5>
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">Mã đơn hàng</small>
+                            <div class="fw-semibold">#@Model.MaDonHang</div>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">Ngày đặt hàng</small>
+                            <div class="fw-semibold">
+                                <i class="bi bi-calendar3 me-1"></i>
+                                @Model.NgayDatHang?.ToString("dd/MM/yyyy HH:mm")
+                            </div>
+                        </div>
+                        @if (Model.NgayGiaoHang.HasValue)
+                        {
+                            <div class="mb-3">
+                                <small class="text-muted d-block mb-1">Ngày giao hàng</small>
+                                <div class="fw-semibold">
+                                    <i class="bi bi-calendar-check me-1"></i>
+                                    @Model.NgayGiaoHang.Value.ToString("dd/MM/yyyy HH:mm")
+                                </div>
+                            </div>
+                        }
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">Trạng thái</small>
+                            <span class="badge @GetStatusBadgeClass(Model.TrangThai) fs-6 px-3 py-2">
+                                @Model.TrangThai
+                            </span>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">Tổng tiền</small>
+                            <div class="fw-bold text-primary fs-4">@Model.TongTien.ToString("N0") đ</div>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">Người nhận</small>
+                            <div class="fw-semibold">
+                                <i class="bi bi-person me-1"></i>@(string.IsNullOrWhiteSpace(Model.TenNguoiNhan) ? "Chưa cập nhật" : Model.TenNguoiNhan)
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">Số điện thoại</small>
+                            <div class="fw-semibold">
+                                <i class="bi bi-telephone me-1"></i>@(string.IsNullOrWhiteSpace(Model.DienThoai) ? "Chưa cập nhật" : Model.DienThoai)
+                            </div>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block mb-1">Địa chỉ giao hàng</small>
+                            <div class="fw-semibold">
+                                <i class="bi bi-geo-alt me-1"></i>@(string.IsNullOrWhiteSpace(Model.DiaChi) ? "Chưa cập nhật" : Model.DiaChi)
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(Model.GhiChu))
+                        {
+                            <div class="mt-3">
+                                <small class="text-muted d-block mb-1">Ghi chú</small>
+                                <div class="text-muted small">@Model.GhiChu</div>
+                            </div>
+                        }
+                        
+                        @* Nút khiếu nại - chỉ hiển thị khi đơn hàng đã giao *@
+                        @if (Model.TrangThai == "Đã giao")
+                        {
+                            var orderComplaint = ViewBag.OrderComplaint as WebsiteGiay.Models.KhieuNai;
+                            <hr class="my-3" />
+                            <div class="d-grid">
+                                @if (orderComplaint != null)
+                                {
+                                    <a asp-controller="Complaint" asp-action="Details" asp-route-id="@orderComplaint.MaKhieuNai"
+                                       class="btn btn-outline-info">
+                                        <i class="bi bi-eye me-2"></i>Xem khiếu nại đơn hàng
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a asp-controller="Complaint" asp-action="Create" asp-route-orderId="@Model.MaDonHang" 
+                                       class="btn btn-outline-danger">
+                                        <i class="bi bi-exclamation-triangle me-2"></i>Khiếu nại đơn hàng
+                                    </a>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <h5 class="fw-bold text-dark mb-4">
+                            <i class="bi bi-box-seam me-2 text-primary"></i>Sản Phẩm Trong Đơn Hàng
+                        </h5>
+                        <div class="row g-3">
+                            @foreach (var item in Model.ChiTietDonHangs)
+                            {
+                                var product = item.MaBienTheSpNavigation?.MaSanPhamNavigation;
+                                var productId = product?.MaSanPham ?? 0;
+                                var isReviewed = reviewedProductIds.Contains(productId);
+                                
+                                <div class="col-12">
+                                    <div class="order-item-detail-card p-3 bg-light rounded">
+                                        <div class="row g-3 align-items-center">
+                                            <div class="col-auto">
+                                                @{
+                                                    var imagePath = product?.HinhAnh ?? string.Empty;
+                                                    var resolvedImage = WebsiteGiay.Utilities.ImageHelper.ResolveImagePath(imagePath);
+                                                }
+                                                @if (!string.IsNullOrEmpty(resolvedImage))
+                                                {
+                                                    <img src="@resolvedImage" 
+                                                         alt="@product?.TenSanPham" 
+                                                         class="rounded" 
+                                                         style="width: 100px; height: 100px; object-fit: cover;" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="bg-white d-flex align-items-center justify-content-center rounded"
+                                                         style="width: 100px; height: 100px;">
+                                                        <i class="bi bi-image text-muted fs-4"></i>
+                                                    </div>
+                                                }
+                                            </div>
+                                            <div class="col">
+                                                <h6 class="fw-semibold mb-2">@product?.TenSanPham</h6>
+                                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                                    <span class="badge bg-secondary">Size: @item.MaBienTheSpNavigation?.MaKichCoNavigation?.KichCo1</span>
+                                                    <span class="badge bg-secondary">Màu: @item.MaBienTheSpNavigation?.MaMauNavigation?.TenMau</span>
+                                                    <span class="badge bg-light text-dark">Số lượng: @item.SoLuong</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <small class="text-muted d-block">Đơn giá: @item.DonGia.ToString("N0") đ</small>
+                                                        <div class="fw-bold text-primary mt-1">
+                                                            Thành tiền: @item.ThanhTien.ToString("N0") đ
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex flex-column gap-2">
+                                                        @{
+                                                            var existingReview = reviews.ContainsKey(productId) ? reviews[productId] : null;
+                                                            var existingRating = existingReview?.DiemSo ?? 0;
+                                                            var existingComment = existingReview?.NhanXet ?? "";
+                                                            // Escape quotes and newlines for HTML attribute
+                                                            var commentEscaped = existingComment?.Replace("\"", "&quot;").Replace("\n", " ").Replace("\r", "") ?? "";
+                                                        }
+                                                        @if (Model.TrangThai == "Đã giao")
+                                                        {
+                                                            if (isReviewed && existingReview != null)
+                                                            {
+                                                                <a asp-controller="Review" asp-action="View" 
+                                                                   asp-route-orderId="@Model.MaDonHang" 
+                                                                   asp-route-productId="@item.MaBienTheSp"
+                                                                   class="btn btn-success btn-sm">
+                                                                    <i class="bi bi-check-circle me-2"></i>Xem đánh giá
+                                                                </a>
+                                                            }
+                                                            else
+                                                            {
+                                                                <a asp-controller="Review" asp-action="Create" 
+                                                                   asp-route-orderId="@Model.MaDonHang" 
+                                                                   asp-route-productId="@item.MaBienTheSp"
+                                                                   class="btn btn-primary btn-sm">
+                                                                    <i class="bi bi-star me-2"></i>Đánh giá
+                                                                </a>
+                                                            }
+                                                        }
+                                                        
+                                                        @* Nút khiếu nại sản phẩm - chỉ hiển thị khi đơn hàng đã giao *@
+                                                        @if (Model.TrangThai == "Đã giao")
+                                                        {
+                                                            var productComplaints = ViewBag.ProductComplaints as Dictionary<int, WebsiteGiay.Models.KhieuNai> ?? new Dictionary<int, WebsiteGiay.Models.KhieuNai>();
+                                                            var hasComplaint = productComplaints.ContainsKey(productId);
+                                                            var complaint = hasComplaint ? productComplaints[productId] : null;
+                                                            
+                                                            if (hasComplaint && complaint != null)
+                                                            {
+                                                                <a asp-controller="Complaint" asp-action="Details" asp-route-id="@complaint.MaKhieuNai"
+                                                                   class="btn btn-outline-info btn-sm">
+                                                                    <i class="bi bi-eye me-1"></i>Xem khiếu nại
+                                                                </a>
+                                                            }
+                                                            else
+                                                            {
+                                                                <a asp-controller="Complaint" asp-action="Create" 
+                                                                   asp-route-orderId="@Model.MaDonHang" 
+                                                                   asp-route-productId="@item.MaBienTheSp"
+                                                                   class="btn btn-outline-danger btn-sm">
+                                                                    <i class="bi bi-exclamation-triangle me-1"></i>Khiếu nại
+                                                                </a>
+                                                            }
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="reviewModalLabel">
+                    <i class="bi bi-star me-2 text-warning"></i>Đánh Giá Sản Phẩm
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="reviewForm">
+                <div class="modal-body">
+                    <input type="hidden" id="reviewProductId" name="maSanPham" />
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Sản phẩm</label>
+                        <div class="form-control bg-light" id="reviewProductName"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Đánh giá <span class="text-danger">*</span></label>
+                        <div class="star-rating mb-2">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="bi bi-star star-icon" data-rating="@i" style="font-size: 2rem; color: #ddd; cursor: pointer; margin-right: 5px;"></i>
+                            }
+                        </div>
+                        <input type="hidden" id="reviewRating" name="diemSo" required />
+                        <small class="text-danger" id="ratingError" style="display: none;">Vui lòng chọn số sao đánh giá</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reviewComment" class="form-label fw-semibold">Nhận xét (tùy chọn)</label>
+                        <textarea class="form-control" id="reviewComment" name="nhanXet" rows="4" placeholder="Chia sẻ cảm nhận của bạn về sản phẩm này..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>Gửi Đánh Giá
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Chờ xử lý" => "bg-warning text-dark",
+            "Đang xử lý" => "bg-info text-white",
+            "Đang giao hàng" => "bg-primary text-white",
+            "Đã giao hàng" => "bg-success text-white",
+            "Đã hủy" => "bg-danger text-white",
+            _ => "bg-secondary text-white"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        let selectedRating = 0;
+
+        function openReviewModal(button) {
+            const productId = button.dataset.productId;
+            const productName = button.dataset.productName;
+            const existingRating = parseInt(button.dataset.rating) || 0;
+            // Get comment from data attribute (already escaped)
+            const existingComment = button.dataset.comment || '';
+            
+            document.getElementById('reviewProductId').value = productId;
+            document.getElementById('reviewProductName').textContent = productName;
+            document.getElementById('reviewRating').value = existingRating;
+            document.getElementById('reviewComment').value = existingComment;
+            selectedRating = existingRating;
+            
+            // Set stars based on existing rating
+            document.querySelectorAll('.star-icon').forEach((star, index) => {
+                if (index < existingRating) {
+                    star.classList.remove('bi-star');
+                    star.classList.add('bi-star-fill', 'text-warning');
+                    star.style.color = '#ffc107';
+                } else {
+                    star.classList.remove('bi-star-fill', 'text-warning');
+                    star.classList.add('bi-star');
+                    star.style.color = '#ddd';
+                }
+            });
+            
+            document.getElementById('ratingError').style.display = 'none';
+        }
+
+        // Star rating interaction
+        document.querySelectorAll('.star-icon').forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.dataset.rating);
+                selectedRating = rating;
+                document.getElementById('reviewRating').value = rating;
+                document.getElementById('ratingError').style.display = 'none';
+                
+                // Update star display
+                document.querySelectorAll('.star-icon').forEach((s, index) => {
+                    if (index < rating) {
+                        s.classList.remove('bi-star');
+                        s.classList.add('bi-star-fill', 'text-warning');
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.classList.remove('bi-star-fill', 'text-warning');
+                        s.classList.add('bi-star');
+                        s.style.color = '#ddd';
+                    }
+                });
+            });
+
+            star.addEventListener('mouseenter', function() {
+                const rating = parseInt(this.dataset.rating);
+                document.querySelectorAll('.star-icon').forEach((s, index) => {
+                    if (index < rating) {
+                        s.style.color = '#ffc107';
+                    }
+                });
+            });
+
+            star.addEventListener('mouseleave', function() {
+                document.querySelectorAll('.star-icon').forEach((s, index) => {
+                    if (selectedRating === 0 || index >= selectedRating) {
+                        s.style.color = '#ddd';
+                    }
+                });
+            });
+        });
+
+        // Submit review form
+        document.getElementById('reviewForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const rating = document.getElementById('reviewRating').value;
+            if (!rating || rating < 1 || rating > 5) {
+                document.getElementById('ratingError').style.display = 'block';
+                return;
+            }
+
+            const formData = new FormData(this);
+            const data = {
+                maSanPham: parseInt(formData.get('maSanPham')),
+                diemSo: parseInt(formData.get('diemSo')),
+                nhanXet: formData.get('nhanXet') || null
+            };
+
+            fetch('/Order/SubmitReview', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    showNotification(result.message, 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('reviewModal'));
+                    modal.hide();
+                    // Reload page to update review status
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showNotification(result.message || 'Có lỗi xảy ra khi gửi đánh giá', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Có lỗi xảy ra khi gửi đánh giá', 'danger');
+            });
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .order-detail-page {
+            background-color: #f8f9fa;
+        }
+
+        .order-item-detail-card {
+            transition: var(--transition);
+        }
+
+        .order-item-detail-card:hover {
+            background-color: #e9ecef !important;
+        }
+
+        .star-rating .star-icon:hover {
+            transform: scale(1.1);
+            transition: transform 0.2s;
+        }
+
+        .star-rating .bi-star-fill {
+            color: #ffc107 !important;
+        }
+    </style>
+}
+
